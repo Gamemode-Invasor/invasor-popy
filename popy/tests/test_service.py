@@ -26,12 +26,12 @@ def png_bytes():
 
 
 class Server(unittest.TestCase):
-    """A running service, with its endpoints and "do not disturb" in self.on / self.dnd."""
+    """A running service, with its endpoints and "do not disturb" in self.dnd."""
 
     def setUp(self):
         self.sent, self.extra, self.fail = [], [], None
         self.endpoints = BACKEND.endpoints_mod.build()
-        self.on, self.dnd = {name: True for name in self.endpoints}, False
+        self.dnd = False
 
         def send(title, body, icon, **extra):  # extra: only what the service passes on (sound=)
             if self.fail:
@@ -42,8 +42,7 @@ class Server(unittest.TestCase):
             self.extra.append(extra)
 
         self.s = service.PopyServer(0, send, logging.getLogger("test.popy"), endpoints=self.endpoints.values(),
-                                    unavailable=(Unavailable,),
-                                    endpoint_on=lambda name: self.on[name], quiet=lambda: self.dnd)
+                                    unavailable=(Unavailable,), quiet=lambda: self.dnd)
         self.s.start()
         self.addCleanup(self.s.stop)
 
@@ -148,16 +147,8 @@ class Service(Server):
             sock.bind(("127.0.0.1", port))
 
 
-    def test_endpoint_off_answers_but_shows_nothing(self):
-        self.on["popy"] = False
-        self.assertEqual(self.request(body={"title": "Hi"}),
-                         (200, {"ok": True, "shown": False, "reason": "endpoint_off"}))
-        self.assertEqual(self.sent, [])
-        self.assertEqual({k: self.s.recent[0][k] for k in ("source", "title", "muted")},
-                         {"source": "popy", "title": "Hi", "muted": "endpoint_off"})
-
     def test_a_bad_request_is_still_400_when_silenced(self):
-        self.on["popy"], self.dnd = False, True
+        self.dnd = True
         self.assertEqual(self.request(body={"title": "x", "extra": 1})[0], 400)
 
     def test_do_not_disturb(self):

@@ -6,7 +6,6 @@ from .endpoints import Endpoint
 class Popy(Endpoint):
     name = "popy"
     path = "/notify"
-    label = "Popy"
 
     def adapt(self, data):
         """Strict: a typo in a field name is an error."""

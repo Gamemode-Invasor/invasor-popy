@@ -88,8 +88,7 @@ class Backend(unittest.TestCase):
         self.assertIs(b.server, server)  # no restart
         st = b.status()
         self.assertTrue(st["dnd"])
-        self.assertEqual([(e["path"], e["on"]) for e in st["endpoints"]], [("/notify", True)])
-        self.assertEqual(st["endpoints"][0]["url"], f"http://127.0.0.1:{st['port']}/notify")
+        self.assertEqual(st["url"], f"http://127.0.0.1:{st['port']}/notify")
         self.assertEqual(server.receive("popy", "x", "", ""), "do_not_disturb")
         self.assertTrue(b.test())  # the test button ignores it
         self.assertEqual(ctx.shown, ["Popy"])

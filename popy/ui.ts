@@ -4,14 +4,6 @@ import { defineModule, ui, type ModuleCtx } from "invasor";
 // achievement). This tab shows whether it's listening, its settings, a test button and
 // the last notifications (shown, failed or silenced).
 
-interface Endpoint {
-  name: string;
-  path: string;
-  url: string;
-  on: boolean;
-  details: string[];
-}
-
 interface Status {
   enabled: boolean;
   running: boolean;
@@ -19,7 +11,6 @@ interface Status {
   url: string;
   error: string | null;
   dnd: boolean;
-  endpoints: Endpoint[];
 }
 
 interface Recent {
@@ -28,14 +19,12 @@ interface Recent {
   title: string;
   ok: boolean;
   error: string | null;
-  muted: "endpoint_off" | "do_not_disturb" | null;
+  muted: "do_not_disturb" | null;
 }
-
-const MUTED = { endpoint_off: "endpoint off", do_not_disturb: "do not disturb" };
 
 function recentLine(r: Recent) {
   const mark = r.muted ? "🔕" : r.ok ? "✓" : "✗";
-  const why = r.muted ? ` — ${MUTED[r.muted]}` : r.error ? ` — ${r.error}` : "";
+  const why = r.muted ? " — do not disturb" : r.error ? ` — ${r.error}` : "";
   return `${r.time}  ${mark} [${r.source}] ${r.title}${why}`;
 }
 
