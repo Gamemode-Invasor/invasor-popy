@@ -7,9 +7,8 @@ on 127.0.0.1 only, so only programs on this machine can use it.
     GET  /        {"ok": true, "service": "popy", "endpoints": [...]}
 
 Each endpoint (endpoints.py) has an adapt() that turns its payload into (title, body, icon[, sound]),
-or None for an event that isn't shown. An endpoint can be turned off, and "do not
-disturb" silences them all: the request is still checked and answered (200, shown:
-false), but nothing is shown.
+or None for an event that isn't shown. "Do not disturb" silences them all: the request is
+still checked and answered (200, shown: false), but nothing is shown.
 
 Answers: 200 {"ok": true, "shown": true|false, "reason": …}; 400 bad request; 404;
 413 too large; 415 not JSON; 429 too many (more than RATE notifications in RATE_WINDOW
@@ -105,15 +104,15 @@ class PopyServer:
     """The service. send(title, body, icon[, sound=]) shows the notification and raises
     ValueError (bad input -> 400) or another exception (Steam can't -> 503). sound is
     passed only when one was asked for: otherwise Steam decides.
-    endpoint_on(name) and quiet() are read on every request, so turning an endpoint
-    off or "do not disturb" on takes effect at once, without a restart."""
+    quiet() is read on every request, so "do not disturb" takes effect at once, without a
+    restart."""
 
     def __init__(self, port, send, log, endpoints=(), unavailable=(), host=HOST,
-                 endpoint_on=lambda name: True, quiet=lambda: False, default_icon=lambda name: ""):
+                 quiet=lambda: False, default_icon=lambda name: ""):
         self.port, self.send, self.log, self.host = port, send, log, host
         self.routes = {ep.path: (ep.name, ep.adapt) for ep in endpoints}
         self.default_icon = default_icon  # name -> the icon of a notification that has none
-        self.endpoint_on, self.quiet = endpoint_on, quiet
+        self.quiet = quiet
         self.unavailable = tuple(unavailable)
         self.limit = RateLimit()
         self.recent = collections.deque(maxlen=10)
@@ -148,16 +147,12 @@ class PopyServer:
         self.recent.appendleft(entry)
         return entry
 
-    def receive(self, source, title, body, icon, announce=False, sound=""):
-        """A notification from an endpoint: shown, or silenced (endpoint off, do not
-        disturb). Returns None when shown, or the reason it wasn't. An announcement is
-        the endpoint's own message (connected, disconnected): it's shown even as the
-        endpoint is turned off."""
-        reason = ("endpoint_off" if not announce and not self.endpoint_on(source)
-                  else "do_not_disturb" if self.quiet() else None)
-        if reason:
-            self._entry(source, title, muted=reason)
-            return reason
+    def receive(self, source, title, body, icon, sound=""):
+        """A notification from an endpoint: shown, or silenced by "do not disturb". Returns
+        None when shown, or the reason it wasn't."""
+        if self.quiet():
+            self._entry(source, title, muted="do_not_disturb")
+            return "do_not_disturb"
         self.notify(title, body, icon, source, sound)
         return None
 
