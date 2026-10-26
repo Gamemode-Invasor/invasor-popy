@@ -2,7 +2,7 @@
   "api": 1,
   "min_core": "0.2.0",
   "name": "Popy",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "FranjeGueje",
   "description": "Show your own notifications on Steam, sent over the web: POST JSON to a local web service.",
   "order": 40,

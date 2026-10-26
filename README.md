@@ -41,6 +41,10 @@ python3 ../invasor/tools/install_module.py popy    # or install that zip from âš
 
 ## Changes
 
+### 0.1.1
+- Cleaner code: what came from Noty and Popy never used is gone. Nothing changes for you.
+- README: screenshots and requirements.
+
 ### 0.1.0
 - First release.
 
